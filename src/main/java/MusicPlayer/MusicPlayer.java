@@ -51,7 +51,7 @@ public class MusicPlayer extends JFrame{
     
     public MusicPlayer(){
        this.configureGUIView(); 
-       this.loadAudioFile(DEMO_FILE);
+       //this.loadAudioFile(DEMO_FILE);
     }
     
     public MusicPlayer(String audioFile){
@@ -90,7 +90,7 @@ public class MusicPlayer extends JFrame{
         this.fileLabel = new JLabel(MusicPlayer.FILE_LABEL);
         this.fileName = new JLabel(MusicPlayer.DEFAULT_LABEL_VALUE);
         
-        
+        //set actionlistener callbacks
         this.openFileMenuItem.addActionListener( new ActionListener(){
         
             @Override
@@ -99,15 +99,19 @@ public class MusicPlayer extends JFrame{
                 
                 if(returnCode == JFileChooser.APPROVE_OPTION){
                     String selectedFile = audioFileChooser.getSelectedFile().getPath();
-                    System.out.println(selectedFile);
                     if(selectedFile.contains("wav")){
-                        discardAudio();
+                        if(clip != null){
+                            discardAudio();
+                        }
                         
                         playButton.setEnabled(true);
                         pauseButton.setEnabled(false);
                         stopButton.setEnabled(false);
                         
                         loadAudioFile(selectedFile);
+                    } else {
+                    
+                        System.out.println("Unsupported file type selected: " + selectedFile);
                     }
                 }
                 
@@ -147,6 +151,8 @@ public class MusicPlayer extends JFrame{
             }
         });
         
+        //set initial button states to false
+        this.playButton.setEnabled(false);
         pauseButton.setEnabled(false);
         stopButton.setEnabled(false);
         
@@ -283,6 +289,23 @@ public class MusicPlayer extends JFrame{
         
         clip.start();
         System.out.println("Audio was started."); 
+        
+        LineListener listenerObj = new LineListener(){
+            public void update(LineEvent event){
+                if(event.getType() == LineEvent.Type.STOP && clip.getMicrosecondPosition() >= clip.getMicrosecondLength() ){
+                    playButton.setEnabled(true);
+                    pauseButton.setEnabled(false);
+                    stopButton.setEnabled(false);
+                    
+                    clip.setMicrosecondPosition(0); //set to beginning of audio data
+                    System.out.println("Audio finished playing.");
+                }
+            }
+        
+        };
+        
+        clip.addLineListener(listenerObj);
+        
     }
     
     public void stopAudio(){
