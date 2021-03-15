@@ -6,9 +6,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.sound.sampled.*;
 import javax.sound.sampled.AudioFormat.Encoding;
 import javax.swing.*;
+
 
 /**
  *
@@ -47,7 +50,9 @@ public class MusicPlayer extends JFrame{
     private JButton stopButton;
     private JButton pauseButton;
     private JLabel fileLabel;
-    private JLabel fileName;
+    private JLabel fileName; 
+    
+    private JProgressBar timeBar;
     
     public MusicPlayer(){
        this.configureGUIView(); 
@@ -89,6 +94,8 @@ public class MusicPlayer extends JFrame{
         
         this.fileLabel = new JLabel(MusicPlayer.FILE_LABEL);
         this.fileName = new JLabel(MusicPlayer.DEFAULT_LABEL_VALUE);
+        
+        this.timeBar = new JProgressBar();
         
         //set actionlistener callbacks
         this.openFileMenuItem.addActionListener( new ActionListener(){
@@ -162,6 +169,7 @@ public class MusicPlayer extends JFrame{
         this.controlPanel.add(this.playButton);
         this.controlPanel.add(this.pauseButton);
         this.controlPanel.add(this.stopButton);
+        this.controlPanel.add(this.timeBar);
         
         this.add(this.dataPanel);
         this.add(this.controlPanel);
@@ -232,6 +240,13 @@ public class MusicPlayer extends JFrame{
                 }
 
                 clip.open(audioIn);
+                
+                setProgressBarInitialState();
+                
+                TimerTask intervalTask = new ProgressUpdater(this.clip,this.timeBar);
+                Timer timer = new Timer();
+                timer.schedule(intervalTask, 0, 1000); 
+                
             } else{
                 System.out.println("File does not exist: "+ audioPath + "\n");
             }
@@ -246,6 +261,13 @@ public class MusicPlayer extends JFrame{
         
     }
     
+    private void setProgressBarInitialState(){
+        long maxBound = this.clip.getMicrosecondLength();
+        this.timeBar.setMinimum(0);
+        this.timeBar.setMaximum((int)maxBound);
+        
+        this.timeBar.setValue(0);
+    }
     
     public static void main(String[] args){
         new MusicPlayer();
@@ -298,8 +320,11 @@ public class MusicPlayer extends JFrame{
                     stopButton.setEnabled(false);
                     
                     clip.setMicrosecondPosition(0); //set to beginning of audio data
+                    timeBar.setValue((int)clip.getMicrosecondLength());
                     System.out.println("Audio finished playing.");
                 }
+                
+                
             }
         
         };
@@ -316,6 +341,7 @@ public class MusicPlayer extends JFrame{
         
         this.clip.stop();
         this.clip.setMicrosecondPosition(0); //set to beginning of audio data
+        timeBar.setValue(0);
         
         System.out.println("Audio was stopped.");
     }
