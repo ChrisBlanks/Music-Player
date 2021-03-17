@@ -25,7 +25,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  * @author KuRi
  */
 public class WavAudioResource extends AudioResource {
-    
+    private final static long SEC_TO_MICROSEC_CONV = 1000000;
     private boolean isInitialized;
     
     private Clip clip;
@@ -61,6 +61,10 @@ public class WavAudioResource extends AudioResource {
         this.isInitialized = false;
     }
     
+    public Clip getClipObj(){
+        return this.clip;
+    }
+    
     @Override
     public void closeResource(){
         if(this.isIniatialized() == false){
@@ -76,11 +80,19 @@ public class WavAudioResource extends AudioResource {
     public void displayAudioDetails(){
         if(this.isIniatialized() == false){
             throw new IllegalStateException("Object is not initialized.");
-        } 
+        }
         
-        String generalInfo = String.format("Number of Channels: %d\nEncoding Type: %s",
-                                           this.chanNum,
-                                           this.encodingType
+        long hours = (this.playTime/ SEC_TO_MICROSEC_CONV) / 3600;
+        long mins = ((this.playTime/ SEC_TO_MICROSEC_CONV) /60) % 60;
+        long secs = (this.playTime / SEC_TO_MICROSEC_CONV) % 60;
+        String playTimeStr = String.format("%d seconds (%d hrs %d min %d sec)",(long)this.playTime/SEC_TO_MICROSEC_CONV,hours,mins,secs);
+        
+        String generalInfo = String.format("File Name: %s\nFile Path: %s\nPlay time: %s\nEncoding Type: %s\nNumber of Channels: %d",
+                                           this.fileName,
+                                           this.audioResourceFilePath,
+                                           playTimeStr,
+                                           this.encodingType,
+                                           this.chanNum
                 );
 
         String sampleInfo = String.format("Sample Size: %d Bytes\nSample Rate: %f Hz",
@@ -88,16 +100,23 @@ public class WavAudioResource extends AudioResource {
                                          this.sampleRate                              
         );
 
-        String frameInfo = String.format("Frame Size:%d Bytes\nFrame Rate: %f Hz\nNumber of Frames: %d\n\n",
+        String frameInfo = String.format("Frame Size:%d Bytes\nFrame Rate: %f Hz\nNumber of Frames: %d",
                                          this.frameSize,
                                          this.frameRate,
                                          this.numFrames
         );  
+        
+        String mediaInfo = String.format("Author: %s\nTitle: %s\nDate Released: %s\n\n",
+                                        this.author,
+                                        this.title,
+                                        this.dateReleased
+        );
 
 
         System.out.println(generalInfo); 
         System.out.println(sampleInfo); 
         System.out.println(frameInfo);
+        System.out.println(mediaInfo);
     }
     
     
@@ -110,6 +129,8 @@ public class WavAudioResource extends AudioResource {
             audioFile = new File(filePath);
             
             if(audioFile.exists()){
+                this.audioResourceFilePath = filePath;
+                
                 this.audioIn = AudioSystem.getAudioInputStream(audioFile);
                 this.audioFileFormat = AudioSystem.getAudioFileFormat(audioFile);
 
@@ -198,6 +219,18 @@ public class WavAudioResource extends AudioResource {
     }
     
     /**
+     * Set the media position to specified value in microseconds
+     * @param timePos Time position in media
+     */
+    public void setMicrosecondPosition(long timePos){
+        if(this.isIniatialized() == false){
+            throw new IllegalStateException("Object is not initialized.");
+        } 
+        
+        this.clip.setMicrosecondPosition(timePos); //set to beginning of audio data
+    }
+    
+    /**
      * Return a boolean that indicates whether the WavAudioResource is fully initialized
      * @return boolean
      */
@@ -208,7 +241,8 @@ public class WavAudioResource extends AudioResource {
     //private functions
     
     private void populateAudioDataFields(){
-    
+        this.fileName = this.audioResourceFilePath.replaceAll("^.*[\\/\\\\]", "");
+        
         this.AudioFmt = this.audioIn.getFormat();
         
         this.chanNum = this.AudioFmt.getChannels();
@@ -218,13 +252,13 @@ public class WavAudioResource extends AudioResource {
         this.frameRate = this.AudioFmt.getFrameRate();
         this.numFrames = this.audioIn.getFrameLength();
         
+        this.playTime = this.clip.getMicrosecondLength();
+        
         AudioFormat.Encoding codeType = this.AudioFmt.getEncoding();
         this.encodingType = codeType.toString();
         
-        //To-Do: Populate "media" fields
         Map<String,Object> props = this.audioFileFormat.properties();
 
-        this.playTime = (long) props.getOrDefault(this.AudioProperties[0],0);
         this.author = (String) props.getOrDefault(this.AudioProperties[1], "");
         this.title = (String) props.getOrDefault(this.AudioProperties[2], "");
         this.dateReleased = (String) props.getOrDefault(this.AudioProperties[3], "") ;
