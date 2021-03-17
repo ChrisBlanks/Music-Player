@@ -11,6 +11,7 @@ package MusicPlayer;
  */
 public abstract class AudioResource {
     String audioResourceFilePath;
+    String fileName;
     
     //Media Details
     String author;
@@ -35,9 +36,10 @@ public abstract class AudioResource {
     public abstract void closeResource();
     public abstract void displayAudioDetails();
     public abstract void loadNewResource(String filePath);
-    public abstract void playAudio();
-    public abstract void stopAudio();
     public abstract void pauseAudio();
+    public abstract void playAudio();
     public abstract void resumeAudio();
+    public abstract void setMicrosecondPosition(long timePos);
+    public abstract void stopAudio();
     
 }
