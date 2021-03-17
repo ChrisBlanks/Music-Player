@@ -40,27 +40,33 @@ public class MusicPlayerGUI extends JFrame {
     private static final String FILE_LABEL = "Audio File:";
     private static final String DEFAULT_LABEL_VALUE = "Null";
     
-    private JMenuBar menuBar;
-    private JMenu menu;
-    private JMenuItem openFileMenuItem;
+    public JMenuBar menuBar;
+    public JMenu menu;
+    public JMenuItem openFileMenuItem;
     
-    private JFileChooser audioFileChooser;
+    public JFileChooser audioFileChooser;
     
-    private JPanel dataPanel;
-    private JPanel controlPanel;
+    public JPanel dataPanel;
+    public JPanel controlPanel;
 
-    private JButton playButton;
-    private JButton stopButton;
-    private JButton pauseButton;
-    private JLabel fileLabel;
-    private JLabel fileName; 
+    public JButton playButton;
+    public JButton stopButton;
+    public JButton pauseButton;
+    public JLabel fileLabel;
+    public JLabel fileName; 
     
-    private JProgressBar timeBar;
-    private MusicPlayerController mpc;
+    public JProgressBar timeBar;
+    public MusicPlayerController mpc;
+    
     
     MusicPlayerGUI(){
         this.configureGUIView(); 
         this.mpc = new MusicPlayerController();
+        this.mpc.attachGUIInstance(this);
+    }
+    
+    public static void main(String[] args){
+        new MusicPlayerGUI();
     }
     
     private final void configureGUIView(){
@@ -69,96 +75,13 @@ public class MusicPlayerGUI extends JFrame {
         this.setSize(new Dimension(MusicPlayerGUI.INITIAL_GUI_HEIGHT, MusicPlayerGUI.INITIAL_GUI_WIDTH));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-        this.menuBar = new JMenuBar();
-        this.menu = new JMenu(MusicPlayerGUI.FILE_MENU_NAME);
-        this.openFileMenuItem = new JMenuItem(MusicPlayerGUI.OPEN_FILE_MENU_ITEM_TEXT);
-        
-        this.menu.add(this.openFileMenuItem);
-        this.menuBar.add(this.menu);
-        this.setJMenuBar(this.menuBar);
-        
-        this.audioFileChooser = new JFileChooser();
-        
-        this.dataPanel = new JPanel();
-        this.controlPanel = new JPanel();
-        
-        this.playButton = new JButton(MusicPlayerGUI.PLAY_BUTTON_TEXT);
-        this.stopButton = new JButton(MusicPlayerGUI.STOP_BUTTON_TEXT);
-        this.pauseButton = new JButton(MusicPlayerGUI.PAUSE_BUTTON_TEXT);
-        
-        this.fileLabel = new JLabel(MusicPlayerGUI.FILE_LABEL);
-        this.fileName = new JLabel(MusicPlayerGUI.DEFAULT_LABEL_VALUE);
-        
-        this.timeBar = new JProgressBar();
-        
-        //set actionlistener callbacks
-        this.openFileMenuItem.addActionListener( new ActionListener(){
-        
-            @Override
-            public void actionPerformed(ActionEvent e){
-                int returnCode = audioFileChooser.showOpenDialog(menu);
-                
-                if(returnCode == JFileChooser.APPROVE_OPTION){
-                    String selectedFile = audioFileChooser.getSelectedFile().getPath();
-                    if(selectedFile.contains("wav")){
-                        /*
-                        if(clip != null){
-                            discardAudio();
-                        }
-                        
-                        playButton.setEnabled(true);
-                        pauseButton.setEnabled(false);
-                        stopButton.setEnabled(false);
-                        
-                        loadAudioFile(selectedFile);
-                        */
-                    } else {
-                    
-                        System.out.println("Unsupported file type selected: " + selectedFile);
-                    }
-                }
-                
-                
-            }
-        });
-        
-        playButton.addActionListener(new ActionListener(){
-        
-            @Override
-            public void actionPerformed(ActionEvent e){
-                //playAduio();
-                
-                playButton.setEnabled(false);
-                pauseButton.setEnabled(true);
-                stopButton.setEnabled(true);
-                
-            }
-        });
-        
-        pauseButton.addActionListener( new ActionListener(){
-            
-            @Override
-            public void actionPerformed(ActionEvent e){
-                //toggleAudio();
-            }
-        
-        });
-        
-        stopButton.addActionListener(new ActionListener(){
-        
-            @Override
-            public void actionPerformed(ActionEvent e){
-                //stopAudio();
-                playButton.setEnabled(true);
-                pauseButton.setEnabled(false);
-                stopButton.setEnabled(false);
-            }
-        });
+        this.createGUIElements();
+        this.setActionListeners();
         
         //set initial button states to false
         this.playButton.setEnabled(false);
-        pauseButton.setEnabled(false);
-        stopButton.setEnabled(false);
+        this.pauseButton.setEnabled(false);
+        this.stopButton.setEnabled(false);
         
         this.dataPanel.add(this.fileLabel);
         this.dataPanel.add(this.fileName);
@@ -176,15 +99,110 @@ public class MusicPlayerGUI extends JFrame {
         this.setVisible(true);
     }
     
+    private void createGUIElements(){
+        this.menuBar = new JMenuBar();
+        this.menu = new JMenu(MusicPlayerGUI.FILE_MENU_NAME);
+        this.openFileMenuItem = new JMenuItem(MusicPlayerGUI.OPEN_FILE_MENU_ITEM_TEXT);
+        
+        this.menu.add(this.openFileMenuItem);
+        this.menuBar.add(this.menu);
+        this.setJMenuBar(this.menuBar);
+        
+        this.audioFileChooser = new JFileChooser(System.getProperty("user.home"));
+        
+        this.dataPanel = new JPanel();
+        this.controlPanel = new JPanel();
+        
+        this.playButton = new JButton(MusicPlayerGUI.PLAY_BUTTON_TEXT);
+        this.stopButton = new JButton(MusicPlayerGUI.STOP_BUTTON_TEXT);
+        this.pauseButton = new JButton(MusicPlayerGUI.PAUSE_BUTTON_TEXT);
+        
+        this.fileLabel = new JLabel(MusicPlayerGUI.FILE_LABEL);
+        this.fileName = new JLabel(MusicPlayerGUI.DEFAULT_LABEL_VALUE);
+        
+        this.timeBar = new JProgressBar();
+    }
+    
+    private void setActionListeners(){
+    
+        //set actionlistener callbacks
+        this.openFileMenuItem.addActionListener( new ActionListener(){
+        
+            @Override
+            public void actionPerformed(ActionEvent e){
+                int returnCode = audioFileChooser.showOpenDialog(menu);
+                
+                if(returnCode == JFileChooser.APPROVE_OPTION){
+                    String selectedFile = audioFileChooser.getSelectedFile().getPath();
+                    if(selectedFile.contains("wav")){
+                        
+                        playButton.setEnabled(true);
+                        pauseButton.setEnabled(false);
+                        stopButton.setEnabled(false);
+                        
+                        mpc.loadAudio(selectedFile);
+                        fileName.setText(mpc.getAudioFileName());
+                        setProgressBarInitialState();
+
+                    } else {
+                        System.out.println("Unsupported file type selected: " + selectedFile);
+                    }
+                }
+                
+                
+            }
+        });
+        
+        this.playButton.addActionListener(new ActionListener(){
+        
+            @Override
+            public void actionPerformed(ActionEvent e){
+                mpc.playAudio();
+                
+                playButton.setEnabled(false);
+                pauseButton.setEnabled(true);
+                stopButton.setEnabled(true);
+                
+            }
+        });
+        
+        this.pauseButton.addActionListener( new ActionListener(){
+            boolean playState = true;
+            
+            @Override
+            public void actionPerformed(ActionEvent e){
+                if(playState == true){
+                    mpc.pauseAudio();
+                    playState = false;
+                } else{
+                    mpc.resumeAudio();
+                    playState = true;
+                }
+            }
+        
+        });
+        
+        this.stopButton.addActionListener(new ActionListener(){
+        
+            @Override
+            public void actionPerformed(ActionEvent e){
+
+                mpc.stopAudio();
+                
+                playButton.setEnabled(true);
+                pauseButton.setEnabled(false);
+                stopButton.setEnabled(false);
+            }
+        });
+    }
+    
     private void setProgressBarInitialState(){
-        /*
-        long maxBound = this.clip.getMicrosecondLength();
+        long maxBound = this.mpc.getAudioPlayTime();
         
         this.timeBar.setMinimum(0);
         this.timeBar.setMaximum((int)maxBound);
         
         this.timeBar.setValue(0);
-        */
     }
     
 }
