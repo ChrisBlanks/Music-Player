@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
@@ -56,20 +57,25 @@ public class MusicPlayerGUI extends JFrame {
     public JLabel fileName; 
     
     public JProgressBar timeBar;
+    
     public MusicPlayerController mpc;
     
     
     MusicPlayerGUI(){
-        this.configureGUIView(); 
+    }
+    
+    public static void main(String[] args){
+        MusicPlayerGUI mpg = new MusicPlayerGUI();
+        mpg.configureController();
+        mpg.configureGUIView();
+    }
+    
+    private void configureController(){
         this.mpc = new MusicPlayerController();
         this.mpc.attachGUIInstance(this);
     }
     
-    public static void main(String[] args){
-        new MusicPlayerGUI();
-    }
-    
-    private final void configureGUIView(){
+    private void configureGUIView(){
         
         this.setTitle(MusicPlayerGUI.GUI_TITLE);
         this.setSize(new Dimension(MusicPlayerGUI.INITIAL_GUI_HEIGHT, MusicPlayerGUI.INITIAL_GUI_WIDTH));
@@ -123,6 +129,10 @@ public class MusicPlayerGUI extends JFrame {
         this.timeBar = new JProgressBar();
     }
     
+    public void displayMessage(String message){
+        JOptionPane.showMessageDialog(this, message);
+    }
+    
     private void setActionListeners(){
     
         //set actionlistener callbacks
@@ -131,22 +141,20 @@ public class MusicPlayerGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e){
                 int returnCode = audioFileChooser.showOpenDialog(menu);
+                boolean result = false;
                 
                 if(returnCode == JFileChooser.APPROVE_OPTION){
                     String selectedFile = audioFileChooser.getSelectedFile().getPath();
-                    if(selectedFile.contains("wav")){
-                        
-                        playButton.setEnabled(true);
-                        pauseButton.setEnabled(false);
-                        stopButton.setEnabled(false);
-                        
-                        mpc.loadAudio(selectedFile);
+                    playButton.setEnabled(true);
+                    pauseButton.setEnabled(false);
+                    stopButton.setEnabled(false);
+
+                    result = mpc.loadAudio(selectedFile);
+                    if(result){
                         fileName.setText(mpc.getAudioFileName());
                         setProgressBarInitialState();
-
-                    } else {
-                        System.out.println("Unsupported file type selected: " + selectedFile);
                     }
+
                 }
                 
                 

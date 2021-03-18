@@ -61,7 +61,9 @@ public class MusicPlayerController {
         return resources.get(currentResourceIndex).audioResourceFilePath;
     }
     
-    public void loadAudio(String audioFilePath){
+    public boolean loadAudio(String audioFilePath){
+        boolean isSuccessful = false;
+        
         //use factory here & add return to arraylist if not null
         AudioResource newResource = AudioResourceFactory.getAudioResource(audioFilePath);
         if(newResource != null){
@@ -69,7 +71,12 @@ public class MusicPlayerController {
             
             resources.add(newResource);
             ++currentResourceIndex;
+            isSuccessful = true;
+        } else{
+            this.mpgObj.displayMessage("Could not load: " + audioFilePath);
         }
+        
+        return isSuccessful;
     }
     
     public void playAudio(){
