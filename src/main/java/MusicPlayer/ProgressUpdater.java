@@ -7,7 +7,7 @@ package MusicPlayer;
 
 import java.util.TimerTask;
 import javax.sound.sampled.Clip;
-import javax.swing.JProgressBar;
+import javax.swing.JSlider;
 
 /**
  *
@@ -15,11 +15,11 @@ import javax.swing.JProgressBar;
  */
 class ProgressUpdater extends TimerTask{
     
-    private JProgressBar bar;
+    private JSlider slider;
     private Clip clip;
     
-    ProgressUpdater(Clip clip,JProgressBar bar){
-        this.bar = bar;
+    ProgressUpdater(Clip clip,JSlider slider){
+        this.slider = slider;
         this.clip = clip;
     }
     
@@ -28,7 +28,7 @@ class ProgressUpdater extends TimerTask{
         
         if(this.clip.isRunning()){
             long newPos = this.clip.getMicrosecondPosition();
-            this.bar.setValue((int)newPos);
+            this.slider.setValue((int)newPos);
         }
         
     }
