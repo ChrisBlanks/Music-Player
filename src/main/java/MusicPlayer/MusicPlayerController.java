@@ -33,32 +33,51 @@ public class MusicPlayerController {
     }
     
     public void attachLineListener(LineListener listener){
-        AudioResource temp = resources.get(currentResourceIndex);
-        
-        if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
-            WavAudioResource wavTemp = (WavAudioResource)temp;
-            Clip clipTemp = wavTemp.getClipObj();
-            clipTemp.addLineListener(listener);
-        } else{
-            System.out.println("Unsupported file type. Line listener was not attached.");
+        if(resources.isEmpty() == false){
+            AudioResource temp = resources.get(currentResourceIndex);
+
+            if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
+                WavAudioResource wavTemp = (WavAudioResource)temp;
+                Clip clipTemp = wavTemp.getClipObj();
+                clipTemp.addLineListener(listener);
+            } else{
+                System.out.println("Unsupported file type. Line listener was not attached.");
+            }
         }
     }
     
     public void closeAudio(){
-        //close/discard of audio resource
-        resources.get(currentResourceIndex).closeResource();
+
+        if(resources.isEmpty() == false){
+            //close/discard of audio resource
+            resources.get(currentResourceIndex).closeResource();
+        }
     }
     
     public long getAudioPlayTime(){
-        return resources.get(currentResourceIndex).playTime;
+        
+        if(resources.isEmpty() == false){
+            return resources.get(currentResourceIndex).playTime;
+        } else{
+            return 0;
+        }
     }
     
     public String getAudioFileName(){
-        return resources.get(currentResourceIndex).fileName;
+        if(resources.isEmpty() == false){
+            return resources.get(currentResourceIndex).fileName;
+        } else{
+            return null;
+        }
+        
     }
     
     public String getAudioFilePath(){
-        return resources.get(currentResourceIndex).audioResourceFilePath;
+        if(resources.isEmpty() == false){
+            return resources.get(currentResourceIndex).audioResourceFilePath;
+        } else{
+            return null;
+        }
     }
     
     public boolean loadAudio(String audioFilePath){
@@ -80,58 +99,79 @@ public class MusicPlayerController {
     }
     
     public void playAudio(){
-        //start audio playback of selected resource
-        AudioResource temp = resources.get(currentResourceIndex);
-        temp.playAudio();
-        
-        if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
-            WavAudioResource wavTemp = (WavAudioResource)temp;
-            Clip clip = wavTemp.getClipObj();
-        
-            LineListener listener = new LineListener(){
-                @Override
-                public void update(LineEvent event){
+        if(resources.isEmpty() == false){
+            //start audio playback of selected resource
+            AudioResource temp = resources.get(currentResourceIndex);
+            temp.playAudio();
 
-                    if(event.getType() == LineEvent.Type.STOP && clip.getMicrosecondPosition() >= clip.getMicrosecondLength() ){
-                        mpgObj.playButton.setEnabled(true);
-                        mpgObj.pauseButton.setEnabled(false);
-                        mpgObj.stopButton.setEnabled(false);
+            if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
+                WavAudioResource wavTemp = (WavAudioResource)temp;
+                Clip clip = wavTemp.getClipObj();
 
-                        clip.setMicrosecondPosition(0); //set to beginning of audio data
-                        mpgObj.timeBar.setValue(0);
-                        System.out.println("Audio finished playing.");
+                LineListener listener = new LineListener(){
+                    @Override
+                    public void update(LineEvent event){
+
+                        if(event.getType() == LineEvent.Type.STOP && clip.getMicrosecondPosition() >= clip.getMicrosecondLength() ){
+                            mpgObj.playButton.setEnabled(true);
+                            mpgObj.pauseButton.setEnabled(false);
+                            mpgObj.stopButton.setEnabled(false);
+
+                            clip.setMicrosecondPosition(0); //set to beginning of audio data
+                            mpgObj.timeSlider.setValue(0);
+                            System.out.println("Audio finished playing.");
+                        }
+
+
                     }
+                };
+                this.attachLineListener(listener);
 
-
-                }
-            };
-            this.attachLineListener(listener);
-            
-            TimerTask intervalTask = new ProgressUpdater(clip,mpgObj.timeBar);
-            Timer timer = new Timer();
-            timer.schedule(intervalTask, 0, 250); 
+                TimerTask intervalTask = new ProgressUpdater(clip,mpgObj.timeSlider);
+                Timer timer = new Timer();
+                timer.schedule(intervalTask, 0, 250); 
+            }
         }
         
     }
     
     public void pauseAudio(){
-        //pause audio playback
-        resources.get(currentResourceIndex).pauseAudio();
+        if(resources.isEmpty() == false){
+            //pause audio playback
+            resources.get(currentResourceIndex).pauseAudio();
+        }
     }
     
     public void resumeAudio(){
-        resources.get(currentResourceIndex).resumeAudio();
+        if(resources.isEmpty() == false){
+            resources.get(currentResourceIndex).resumeAudio();
+        }
+        
     }
     
     public void setMicrosecondPosition(long timePos){
-        resources.get(currentResourceIndex).setMicrosecondPosition(timePos);
+        if(resources.isEmpty() == false){
+            resources.get(currentResourceIndex).setMicrosecondPosition(timePos);
+        }
+        
+    }
+    
+    public void setAudioVolumeLevel(float volumeLevel){
+        if(resources.isEmpty() == false){
+            resources.get(currentResourceIndex).setVolume(volumeLevel);
+        }
+        
     }
     
     public void stopAudio(){
-        //stop audio playback
-        resources.get(currentResourceIndex).stopAudio();
-        setMicrosecondPosition(0);
-        this.mpgObj.timeBar.setValue(0);
+        
+        if(resources.isEmpty() == false){
+            //stop audio playback
+            resources.get(currentResourceIndex).stopAudio();
+            setMicrosecondPosition(0);
+            this.mpgObj.timeSlider.setValue(0);
+        }
+
     }
     
 }
