@@ -13,6 +13,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -218,6 +219,7 @@ public class WavAudioResource extends AudioResource {
      * Set the media position to specified value in microseconds
      * @param timePos Time position in media
      */
+    @Override
     public void setMicrosecondPosition(long timePos){
         if(this.isIniatialized() == false){
             throw new IllegalStateException("Object is not initialized.");
@@ -226,10 +228,23 @@ public class WavAudioResource extends AudioResource {
         this.clip.setMicrosecondPosition(timePos); //set to beginning of audio data
     }
     
+    @Override
+    public void setVolume(float newVolumeLevel){
+        if(this.isIniatialized() == false){
+            throw new IllegalStateException("Object is not initialized.");
+        } 
+        
+        FloatControl gainControl = (FloatControl) this.clip.getControl(FloatControl.Type.MASTER_GAIN);
+        
+        float newGain = 20* (float)Math.log10(newVolumeLevel/100);
+        gainControl.setValue(newGain);
+    }
+    
     /**
      * Return a boolean that indicates whether the WavAudioResource is fully initialized
      * @return boolean
      */
+    @Override
     public boolean isIniatialized(){
         return this.isInitialized;
     }

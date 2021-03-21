@@ -35,11 +35,13 @@ public abstract class AudioResource {
     //Basic API for all inheriting classes
     public abstract void closeResource();
     public abstract void displayAudioDetails();
+    public abstract boolean isIniatialized();
     public abstract void loadNewResource(String filePath);
     public abstract void pauseAudio();
     public abstract void playAudio();
     public abstract void resumeAudio();
     public abstract void setMicrosecondPosition(long timePos);
+    public abstract void setVolume(float newVolumeLevel);
     public abstract void stopAudio();
     
 }
