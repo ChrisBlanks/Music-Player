@@ -7,7 +7,6 @@ package MusicPlayer;
 
 import java.awt.Color;
 import java.awt.event.ActionListener;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -165,7 +164,7 @@ public class MediaControlPanel extends JPanel {
         this.volumeSlider.addChangeListener(listener);
     }
     
-    public int getSliderPosition(){
+    public int getVolumeSliderPosition(){
         return this.volumeSlider.getValue();
     }
     
