@@ -249,6 +249,15 @@ public class WavAudioResource extends AudioResource {
         return this.isInitialized;
     }
     
+    @Override
+    public boolean isPlaying(){
+        if(this.isIniatialized() == false){
+            throw new IllegalStateException("Object is not initialized.");
+        } 
+        
+        return this.clip.isRunning();
+    }
+    
     //private functions
     
     private void populateAudioDataFields(){

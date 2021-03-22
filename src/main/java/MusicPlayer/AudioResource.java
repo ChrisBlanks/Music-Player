@@ -36,6 +36,7 @@ public abstract class AudioResource {
     public abstract void closeResource();
     public abstract void displayAudioDetails();
     public abstract boolean isIniatialized();
+    public abstract boolean isPlaying();
     public abstract void loadNewResource(String filePath);
     public abstract void pauseAudio();
     public abstract void playAudio();
