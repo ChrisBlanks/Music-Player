@@ -6,6 +6,8 @@
 package MusicPlayer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.sound.sampled.Clip;
@@ -18,14 +20,15 @@ import javax.sound.sampled.LineListener;
  */
 public class MusicPlayerController {
     
-    private ArrayList<AudioResource> resources;
+    private Map<String,AudioResource> audioResourceMap;
     private MusicPlayerGUI mpgObj;
+    
+    public String selectedSongKey = "";
     
     int currentResourceIndex = -1;
     
     MusicPlayerController(){
-        this.resources = new ArrayList<AudioResource>();
-        
+        this.audioResourceMap = new HashMap<>();
     }
     
     public void attachGUIInstance(MusicPlayerGUI mpg){
@@ -33,8 +36,8 @@ public class MusicPlayerController {
     }
     
     public void attachLineListener(LineListener listener){
-        if(resources.isEmpty() == false){
-            AudioResource temp = resources.get(currentResourceIndex);
+        if(this.audioResourceMap.isEmpty() == false){
+            AudioResource temp = this.audioResourceMap.get(this.selectedSongKey);
 
             if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
                 WavAudioResource wavTemp = (WavAudioResource)temp;
@@ -48,24 +51,24 @@ public class MusicPlayerController {
     
     public void closeAudio(){
 
-        if(resources.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false){
             //close/discard of audio resource
-            resources.get(currentResourceIndex).closeResource();
+            this.audioResourceMap.get(this.selectedSongKey).closeResource();
         }
     }
     
     public long getAudioPlayTime(){
         
-        if(resources.isEmpty() == false){
-            return resources.get(currentResourceIndex).playTime;
+        if(this.audioResourceMap.isEmpty() == false){
+            return this.audioResourceMap.get(this.selectedSongKey).playTime;
         } else{
             return 0;
         }
     }
     
     public String getAudioFileName(){
-        if(resources.isEmpty() == false){
-            return resources.get(currentResourceIndex).fileName;
+        if(this.audioResourceMap.isEmpty() == false){
+            return this.audioResourceMap.get(this.selectedSongKey).fileName;
         } else{
             return null;
         }
@@ -73,8 +76,8 @@ public class MusicPlayerController {
     }
     
     public String getAudioFilePath(){
-        if(resources.isEmpty() == false){
-            return resources.get(currentResourceIndex).audioResourceFilePath;
+        if(this.audioResourceMap.isEmpty() == false){
+            return this.audioResourceMap.get(this.selectedSongKey).audioResourceFilePath;
         } else{
             return null;
         }
@@ -87,9 +90,12 @@ public class MusicPlayerController {
         AudioResource newResource = AudioResourceFactory.getAudioResource(audioFilePath);
         if(newResource != null){
             newResource.displayAudioDetails();
+            this.audioResourceMap.put(audioFilePath, newResource);
             
-            resources.add(newResource);
-            ++currentResourceIndex;
+            this.selectedSongKey = audioFilePath;
+            this.mpgObj.mdp.addSongNameToList(audioFilePath, newResource.fileName);
+            
+            
             isSuccessful = true;
         } else{
             this.mpgObj.displayMessage("Could not load: " + audioFilePath);
@@ -99,13 +105,16 @@ public class MusicPlayerController {
     }
     
     public void playAudio(){
-        if(resources.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false){
             //start audio playback of selected resource
-            AudioResource temp = resources.get(currentResourceIndex);
-            temp.playAudio();
+            AudioResource temp = this.audioResourceMap.get(this.selectedSongKey);
 
             if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
                 WavAudioResource wavTemp = (WavAudioResource)temp;
+                
+                wavTemp.setVolume(this.mpgObj.mcp.getVolumeSliderPosition());
+                
+                
                 Clip clip = wavTemp.getClipObj();
 
                 LineListener listener = new LineListener(){
@@ -118,7 +127,7 @@ public class MusicPlayerController {
                             mpgObj.stopButton.setEnabled(false);
 
                             clip.setMicrosecondPosition(0); //set to beginning of audio data
-                            mpgObj.timeSlider.setValue(0);
+                            mpgObj.mpp.setTimeSliderBounds((int)getAudioPlayTime());
                             System.out.println("Audio finished playing.");
                         }
 
@@ -127,49 +136,63 @@ public class MusicPlayerController {
                 };
                 this.attachLineListener(listener);
 
-                TimerTask intervalTask = new ProgressUpdater(clip,mpgObj.timeSlider);
+                TimerTask intervalTask = new ProgressUpdater(clip,mpgObj.mpp.timeSlider);
                 Timer timer = new Timer();
                 timer.schedule(intervalTask, 0, 250); 
+                
+                wavTemp.playAudio();
             }
         }
         
     }
     
     public void pauseAudio(){
-        if(resources.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false){
             //pause audio playback
-            resources.get(currentResourceIndex).pauseAudio();
+            this.audioResourceMap.get(this.selectedSongKey).pauseAudio();
+        }
+    }
+    
+    public void removeAudio(){
+        if(this.audioResourceMap.isEmpty() == false){
+            //pause audio playback
+            
+            this.audioResourceMap.get(this.selectedSongKey).closeResource();
+            this.audioResourceMap.remove(this.selectedSongKey);
         }
     }
     
     public void resumeAudio(){
-        if(resources.isEmpty() == false){
-            resources.get(currentResourceIndex).resumeAudio();
+        if(this.audioResourceMap.isEmpty() == false){
+            this.audioResourceMap.get(this.selectedSongKey).resumeAudio();
         }
         
     }
     
-    public void setMicrosecondPosition(long timePos){
-        if(resources.isEmpty() == false){
-            resources.get(currentResourceIndex).setMicrosecondPosition(timePos);
+    public void setAudioMicrosecondPosition(long timePos){
+        if(this.audioResourceMap.isEmpty() == false){
+            this.audioResourceMap.get(this.selectedSongKey).setMicrosecondPosition(timePos);
         }
         
     }
     
     public void setAudioVolumeLevel(float volumeLevel){
-        if(resources.isEmpty() == false){
-            resources.get(currentResourceIndex).setVolume(volumeLevel);
+        if(this.audioResourceMap.isEmpty() == false){
+            this.audioResourceMap.get(this.selectedSongKey).setVolume(volumeLevel);
         }
         
     }
     
     public void stopAudio(){
         
-        if(resources.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false){
             //stop audio playback
-            resources.get(currentResourceIndex).stopAudio();
-            setMicrosecondPosition(0);
-            this.mpgObj.timeSlider.setValue(0);
+            AudioResource currentResource = this.audioResourceMap.get(this.selectedSongKey);
+            if(currentResource.isPlaying()){
+                this.audioResourceMap.get(this.selectedSongKey).stopAudio();
+                setAudioMicrosecondPosition(0);
+                mpgObj.mpp.setCurrentPostionOnTimeSlider(0);
+            }
         }
 
     }
