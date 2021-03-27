@@ -116,6 +116,10 @@ public class WavAudioResource extends AudioResource {
         System.out.println(mediaInfo);
     }
     
+    public MediaDetails getMediaDetails(){
+        return new MediaDetails.MediaDetailsBuilder(this.audioResourceFilePath,this.fileName,this.fileTypeExtension).build();
+    }
+    
     
     @Override
     public void loadNewResource(String filePath){

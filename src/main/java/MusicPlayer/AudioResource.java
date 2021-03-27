@@ -35,6 +35,7 @@ public abstract class AudioResource {
     //Basic API for all inheriting classes
     public abstract void closeResource();
     public abstract void displayAudioDetails();
+    public abstract MediaDetails getMediaDetails();
     public abstract boolean isIniatialized();
     public abstract boolean isPlaying();
     public abstract void loadNewResource(String filePath);
