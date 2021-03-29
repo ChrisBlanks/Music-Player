@@ -19,11 +19,12 @@ import javax.sound.sampled.LineListener;
  * @author KuRi
  */
 public class MusicPlayerController {
+    private static final String NO_SONG_SELECTION = "";
     
     private Map<String,AudioResource> audioResourceMap;
     private MusicPlayerGUI mpgObj;
     
-    public String selectedSongKey = "";
+    public String selectedSongKey = MusicPlayerController.NO_SONG_SELECTION;
     
     int currentResourceIndex = -1;
     
@@ -36,7 +37,7 @@ public class MusicPlayerController {
     }
     
     public void attachLineListener(LineListener listener){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null  && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             AudioResource temp = this.audioResourceMap.get(this.selectedSongKey);
 
             if(temp.fileTypeExtension.equalsIgnoreCase(".wav") || temp.fileTypeExtension.equalsIgnoreCase(".wave") ){
@@ -51,7 +52,7 @@ public class MusicPlayerController {
     
     public void closeAudio(){
 
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //close/discard of audio resource
             this.audioResourceMap.get(this.selectedSongKey).closeResource();
         }
@@ -59,7 +60,7 @@ public class MusicPlayerController {
     
     public long getAudioPlayTime(){
         
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             return this.audioResourceMap.get(this.selectedSongKey).playTime;
         } else{
             return 0;
@@ -67,7 +68,7 @@ public class MusicPlayerController {
     }
     
     public String getAudioFileName(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null &&  this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             return this.audioResourceMap.get(this.selectedSongKey).fileName;
         } else{
             return null;
@@ -76,7 +77,7 @@ public class MusicPlayerController {
     }
     
     public String getAudioFilePath(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             return this.audioResourceMap.get(this.selectedSongKey).audioResourceFilePath;
         } else{
             return null;
@@ -105,7 +106,7 @@ public class MusicPlayerController {
     }
     
     public void playAudio(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //start audio playback of selected resource
             AudioResource temp = this.audioResourceMap.get(this.selectedSongKey);
 
@@ -147,37 +148,39 @@ public class MusicPlayerController {
     }
     
     public void pauseAudio(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false &&  this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //pause audio playback
             this.audioResourceMap.get(this.selectedSongKey).pauseAudio();
         }
     }
     
     public void removeAudio(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //pause audio playback
             
             this.audioResourceMap.get(this.selectedSongKey).closeResource();
             this.audioResourceMap.remove(this.selectedSongKey);
+            
+            this.selectedSongKey = ""; //no selection after removal
         }
     }
     
     public void resumeAudio(){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false &&  this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             this.audioResourceMap.get(this.selectedSongKey).resumeAudio();
         }
         
     }
     
     public void setAudioMicrosecondPosition(long timePos){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             this.audioResourceMap.get(this.selectedSongKey).setMicrosecondPosition(timePos);
         }
         
     }
     
     public void setAudioVolumeLevel(float volumeLevel){
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             this.audioResourceMap.get(this.selectedSongKey).setVolume(volumeLevel);
         }
         
@@ -185,10 +188,10 @@ public class MusicPlayerController {
     
     public void stopAudio(){
         
-        if(this.audioResourceMap.isEmpty() == false){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //stop audio playback
             AudioResource currentResource = this.audioResourceMap.get(this.selectedSongKey);
-            if(currentResource.isPlaying()){
+            if( currentResource != null && currentResource.isPlaying()){
                 this.audioResourceMap.get(this.selectedSongKey).stopAudio();
                 setAudioMicrosecondPosition(0);
                 mpgObj.mpp.setCurrentPostionOnTimeSlider(0);

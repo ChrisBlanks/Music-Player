@@ -60,6 +60,7 @@ public class MediaPlaybackPanel extends JPanel {
         this.songArtLabel.setIcon(new ImageIcon(MediaDisplayPanel.DEFAULT_ART_IMAGE_RESOURCE));
         
         this.timeSlider = new JSlider();
+        this.setCurrentPostionOnTimeSlider(0);
         
         this.add(this.songArtLabel,BorderLayout.NORTH);
         this.add(this.timeSlider,BorderLayout.SOUTH);

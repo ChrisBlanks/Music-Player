@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.swing.DefaultListModel;
@@ -34,6 +35,7 @@ public class MediaDisplayPanel extends JPanel {
     final static Color DEFAULT_COMPONENT_BG_COLOR = new Color(255,255,255);
     
     final static String DEFAULT_ART_IMAGE_RESOURCE = "images/default_art.jpg";
+    final static String DEFAULT_SONG_DETAIL = "No song selected";
     
     Map<String,String> songMap;
     DefaultListModel<String> songListCollection;
@@ -96,7 +98,7 @@ public class MediaDisplayPanel extends JPanel {
         this.songScroller.setViewportView(this.songList);
         this.songScroller.setPreferredSize(new Dimension(MediaDisplayPanel.DEFAULT_WIDTH, MediaDisplayPanel.DEFAULT_HEIGHT));
         this.detailsPanel = new JPanel(new GridLayout(2,1));
-        this.songDetailLabel = new JLabel("No song selected");
+        this.songDetailLabel = new JLabel(MediaDisplayPanel.DEFAULT_SONG_DETAIL);
         
         this.detailsPanel.add(this.songDetailLabel);
         
@@ -156,23 +158,56 @@ public class MediaDisplayPanel extends JPanel {
         }
         return result;
     }
-    
+
     /**
      * Remove song name to JList
+     */
+    public void removeCurrentSongFromList(){
+        String songName = (String) this.songList.getSelectedValue();
+        if(songName != null){
+            this.setDefaultSongDetails();
+
+            Iterator it = this.songMap.entrySet().iterator();
+            
+            while(it.hasNext()){
+                Entry item = (Entry) it.next();
+                if(songName.equals(item.getValue())){
+                    it.remove();
+                }
+            }
+            
+            this.songListCollection.removeElement(songName);
+        }
+    }
+
+    
+    /**
+     * Remove song name from JList
      * @param songName Name of song
      */
     public void removeSongFromList(String songName){
         
         if(this.songMap.containsValue(songName)){
-            String key;
-            for(Entry<String,String> entry: this.songMap.entrySet()){
-                if(songName.equals(entry.getValue())){
-                    key = entry.getKey();
-                    this.songMap.remove(key);
+            if(songName.equals(this.songList.getSelectedValue() ) ){
+                this.setDefaultSongDetails();
+            }
+            
+            Iterator it = this.songMap.entrySet().iterator();
+            
+            while(it.hasNext()){
+                Entry item = (Entry) it.next();
+                if(songName.equals(item.getValue())){
+                    it.remove();
                 }
             }
+            
             this.songListCollection.removeElement(songName);
+            
         }
+    }
+    
+    public void setDefaultSongDetails(){
+        this.songDetailLabel.setText(MediaDisplayPanel.DEFAULT_SONG_DETAIL);
     }
     
     /**

@@ -7,6 +7,7 @@ package MusicPlayer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -141,8 +142,7 @@ public class MusicPlayerGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e){
                 int returnCode = audioFileChooser.showOpenDialog(menu);
-                
-                
+
                 if(returnCode == JFileChooser.APPROVE_OPTION){
                     boolean result = false;
                     String selectedFile = audioFileChooser.getSelectedFile().getPath();
@@ -160,6 +160,16 @@ public class MusicPlayerGUI extends JFrame {
                 
                 
             }
+        });
+        
+        this.removeFileMenuItem.addActionListener( new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                mpc.removeAudio();
+                mdp.removeCurrentSongFromList();
+
+            } 
+        
         });
         
         ActionListener playMedia = new ActionListener(){
