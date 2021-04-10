@@ -1,6 +1,7 @@
 # Music-Player
 
 A simple Java desktop app for playing **Wav** audio files.
+
 ---
 
 ## Development Details
