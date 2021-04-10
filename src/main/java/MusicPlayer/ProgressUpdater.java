@@ -25,12 +25,14 @@ class ProgressUpdater extends TimerTask{
     @Override
     public void run(){
         
+        long newPos = this.mpc.getAudioMicrosecondPosition();
+        long maxPlayTime = this.mpc.getAudioPlayTime();
+        
         if(this.mpc.getPlayingState() == true){
-            long newPos = this.mpc.getAudioMicrosecondPosition();
-            
+
             this.mpp.setCurrentPostionOnTimeSlider((int)newPos);
             this.mpp.setCurrentTimeLabel((int)newPos);
-        } else if(this.mpc.getPausedState() == false) {
+        } else if(newPos >= maxPlayTime) {
             this.mpc.stopAudio();
         }
         

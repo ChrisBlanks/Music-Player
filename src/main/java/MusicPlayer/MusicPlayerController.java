@@ -21,7 +21,7 @@ public class MusicPlayerController {
     private static final String NO_SONG_SELECTION = "";
     public static int SLIDER_UPDATE_INTERVAL_MILLISECONDS = 50;
     public static int MILLISECOND_TO_MICROSECOND = 1000;
-    public static int TIME_SLIDER_THRESHOLD = 150;
+    public static int TIME_SLIDER_THRESHOLD_MILLISECOND = 1050; //Note: Seems to be a 1 second delay to start clip
     
     private final Map<String,AudioResource> audioResourceMap;
     private MusicPlayerGUI mpgObj;
@@ -29,8 +29,6 @@ public class MusicPlayerController {
     private Timer timer;
     
     public String selectedSongKey = MusicPlayerController.NO_SONG_SELECTION;
-    
-    private boolean isPaused = false;
     
     MusicPlayerController(){
         this.audioResourceMap = new HashMap<>();
@@ -122,14 +120,6 @@ public class MusicPlayerController {
         }   
     }
     
-    public boolean getPausedState(){
-       return this.isPaused;
-    }
-    
-    public void setPausedState(boolean state){
-        this.isPaused = state;
-    }
-    
     public boolean getPlayingState(){
         if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             return this.audioResourceMap.get(this.selectedSongKey).isPlaying();
@@ -195,9 +185,11 @@ public class MusicPlayerController {
                 };
                 this.attachLineListener(listener);
                 
+                
                 this.timer = new Timer();
                 TimerTask intervalTask = new ProgressUpdater(this,mpgObj.mpp);
-                timer.schedule(intervalTask, 0, MusicPlayerController.SLIDER_UPDATE_INTERVAL_MILLISECONDS); 
+                timer.schedule(intervalTask, 0, MusicPlayerController.SLIDER_UPDATE_INTERVAL_MILLISECONDS);
+                
                 wavTemp.playAudio();
             }
         }
@@ -252,7 +244,7 @@ public class MusicPlayerController {
         if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             //stop audio playback
             AudioResource currentResource = this.audioResourceMap.get(this.selectedSongKey);
-            if( currentResource != null && currentResource.isPlaying()){
+            if( currentResource != null){
                 this.audioResourceMap.get(this.selectedSongKey).stopAudio();
                 
                 this.setAudioMicrosecondPosition(0);
@@ -267,19 +259,22 @@ public class MusicPlayerController {
     
     public void updateTimeSlider(long timePos){
         long previousTime = this.mpgObj.mpp.getPreviousTime();
-        String logMsg = String.format("Old time: %d New time: %d\nDelta: %d"
-                                    ,previousTime
-                                    ,timePos 
-                                    ,timePos - previousTime
+        String logMsg = String.format("Old time: %f ms New time: %f ms\nDelta: %f ms"
+                                    ,(float)previousTime / 1000
+                                    ,(float)timePos / 1000
+                                    ,( (float)timePos - (float)previousTime) /1000
         );
         System.out.println(logMsg);
         
-        if(Math.abs((timePos - previousTime)/ MusicPlayerController.MILLISECOND_TO_MICROSECOND) > MusicPlayerController.TIME_SLIDER_THRESHOLD){
+        long timeDiff = Math.abs((timePos - previousTime)/ MusicPlayerController.MILLISECOND_TO_MICROSECOND);
+        
+        if(timeDiff > MusicPlayerController.TIME_SLIDER_THRESHOLD_MILLISECOND){
             this.setAudioMicrosecondPosition(timePos);
             this.mpgObj.mpp.setCurrentPostionOnTimeSlider((int)timePos);
             this.mpgObj.mpp.setCurrentTimeLabel((int)timePos);
-            System.out.println("Updated time slider");
+            System.out.println("User manually changed time position");
         }
+        
     }
     
 }

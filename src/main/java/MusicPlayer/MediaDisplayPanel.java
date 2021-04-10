@@ -5,6 +5,7 @@
  */
 package MusicPlayer;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -43,6 +44,7 @@ public class MediaDisplayPanel extends JPanel {
     JScrollPane songScroller;
     JPanel detailsPanel;
     JLabel songDetailLabel;
+    JLabel songArtLabel;
     
     MediaDisplayPanel(){
         this.songMap = new HashMap<>();
@@ -60,7 +62,7 @@ public class MediaDisplayPanel extends JPanel {
             @Override
             public void run(){
                 JFrame frame = new JFrame();
-                frame.setSize(600, 600);
+                frame.setSize(650, 450);
                 MediaDisplayPanel test = new MediaDisplayPanel(); 
                 test.addSongNameToList("1","Random");
                 test.addSongNameToList("2","first");
@@ -96,15 +98,25 @@ public class MediaDisplayPanel extends JPanel {
         
         this.songScroller = new JScrollPane();
         this.songScroller.setViewportView(this.songList);
-        this.songScroller.setPreferredSize(new Dimension(MediaDisplayPanel.DEFAULT_WIDTH, MediaDisplayPanel.DEFAULT_HEIGHT));
+        //this.songScroller.setPreferredSize(new Dimension(MediaDisplayPanel.DEFAULT_WIDTH, MediaDisplayPanel.DEFAULT_HEIGHT));
+        //this.songList.setPreferredSize(new Dimension(100,400));
         this.detailsPanel = new JPanel(new GridLayout(2,1));
         this.songDetailLabel = new JLabel(MediaDisplayPanel.DEFAULT_SONG_DETAIL);
         
-        this.detailsPanel.add(this.songDetailLabel);
+        this.songArtLabel = new JLabel();
+        this.songArtLabel.setIcon(new ImageIcon(MediaDisplayPanel.DEFAULT_ART_IMAGE_RESOURCE));
+        
+        this.detailsPanel.setLayout(new BorderLayout());
+        this.detailsPanel.add(this.songDetailLabel,BorderLayout.NORTH);
+        this.detailsPanel.add(this.songArtLabel,BorderLayout.SOUTH);
         
         this.setLayout(new GridLayout(1,2));
-        this.add(this.songScroller);
-        this.add(this.detailsPanel);
+        
+        BorderLayout layout = new BorderLayout();
+        this.setLayout(layout);
+        
+        this.add(this.songScroller,BorderLayout.WEST);
+        this.add(this.detailsPanel,BorderLayout.CENTER);
     }
     
     //public API

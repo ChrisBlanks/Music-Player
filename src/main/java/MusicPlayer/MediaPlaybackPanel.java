@@ -28,8 +28,6 @@ public class MediaPlaybackPanel extends JPanel {
     final static String DEFAULT_ART_IMAGE_RESOURCE = "images/default_art.jpg";
     final static String DEFAULT_TIME_TEXT = "00:00";
     
-    private JLabel songArtLabel;
-    
     private JPanel sliderPanel;
     private JLabel timeIndicatorLabel;
     private JLabel maxTimeLabel;
@@ -70,24 +68,22 @@ public class MediaPlaybackPanel extends JPanel {
             bgColor = newColor;
         }
         
-        this.songArtLabel = new JLabel();
-        this.songArtLabel.setIcon(new ImageIcon(MediaDisplayPanel.DEFAULT_ART_IMAGE_RESOURCE));
-        
         this.sliderPanel = new JPanel();
         this.timeIndicatorLabel = new JLabel(MediaPlaybackPanel.DEFAULT_TIME_TEXT);
         this.maxTimeLabel = new JLabel(MediaPlaybackPanel.DEFAULT_TIME_TEXT);
         
-        this.timeSlider = new JSlider();
+        this.timeSlider = new JSlider(0,100,0);
         this.setCurrentPostionOnTimeSlider(0);
         
-        this.sliderPanel.setLayout(new BorderLayout());
+        BorderLayout layout = new BorderLayout();
+        layout.setHgap(10);
+        
+        this.sliderPanel.setLayout(layout);
         this.sliderPanel.add(this.timeIndicatorLabel,BorderLayout.WEST);
         this.sliderPanel.add(this.timeSlider,BorderLayout.CENTER);
         this.sliderPanel.add(this.maxTimeLabel,BorderLayout.EAST);
         
         this.setLayout(new BorderLayout() );
-        
-        this.add(this.songArtLabel,BorderLayout.NORTH);
         this.add(this.sliderPanel,BorderLayout.SOUTH);
         
     }

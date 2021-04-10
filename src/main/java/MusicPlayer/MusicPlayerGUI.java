@@ -7,8 +7,6 @@ package MusicPlayer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -32,10 +30,10 @@ import javax.swing.event.ListSelectionListener;
  */
 public class MusicPlayerGUI extends JFrame {
     
-    public static final int INITIAL_GUI_HEIGHT = 600;
-    public static final int INITIAL_GUI_WIDTH = 600;
+    public static final int INITIAL_GUI_HEIGHT = 450;
+    public static final int INITIAL_GUI_WIDTH = 650;
     
-    public static final String GUI_TITLE = "Music Player";
+    public static final String GUI_TITLE = "WavPlayer";
     
     private static final String FILE_MENU_NAME = "File";
     private static final String OPEN_FILE_MENU_ITEM_TEXT = "Open a file";
@@ -148,7 +146,9 @@ public class MusicPlayerGUI extends JFrame {
                     playButton.setEnabled(true);
                     pauseButton.setEnabled(false);
                     stopButton.setEnabled(false);
-
+                    
+                    mpc.stopAudio(); //stop any previously running audio
+                    
                     result = mpc.loadAudio(selectedFile);
                     if(result){                        
                         mpp.setTimeSliderBounds((int)mpc.getAudioPlayTime());
@@ -174,31 +174,30 @@ public class MusicPlayerGUI extends JFrame {
         
             @Override
             public void actionPerformed(ActionEvent e){
-                mpc.setPausedState(false);
                 
-                mpc.playAudio();
-                
-                playButton.setEnabled(false);
-                pauseButton.setEnabled(true);
-                stopButton.setEnabled(true);
+                if(playButton.isEnabled()){
+                    mpc.playAudio();
+
+                    playButton.setEnabled(false);
+                    pauseButton.setEnabled(true);
+                    stopButton.setEnabled(true);
+                }
                 
             }
         };
         this.mcp.setPlayAction(playMedia);
         
         ActionListener pauseMedia =new ActionListener(){
-            boolean playState = true;
             
             @Override
             public void actionPerformed(ActionEvent e){
-                if(playState == true){
-                    mpc.pauseAudio();
-                    playState = false;
-                } else{
-                    mpc.resumeAudio();
-                    playState = true;
+                if(pauseButton.isEnabled()){
+                    if(mpc.getPlayingState()){
+                        mpc.pauseAudio();
+                    } else{
+                        mpc.resumeAudio();
+                    }
                 }
-                mpc.setPausedState(!playState);
             }
         
         };
@@ -210,7 +209,6 @@ public class MusicPlayerGUI extends JFrame {
             public void actionPerformed(ActionEvent e){
 
                 mpc.stopAudio();
-                mpc.setPausedState(false);
                 
                 playButton.setEnabled(true);
                 pauseButton.setEnabled(false);
@@ -239,7 +237,11 @@ public class MusicPlayerGUI extends JFrame {
                 if(songName != null){
                     //stop audio if playing
                     mpc.stopAudio();
-                    mpc.setPausedState(false);
+                    
+                    //set button state
+                    playButton.setEnabled(true);
+                    pauseButton.setEnabled(false);
+                    stopButton.setEnabled(false);
                     
                     //setup new selected song
                     mdp.displaySongDetails(mpc.buildAudioDetailsMessage());
@@ -270,6 +272,7 @@ public class MusicPlayerGUI extends JFrame {
     private void configureInitialGUIState(){
         this.setTitle(MusicPlayerGUI.GUI_TITLE);
         this.setSize(new Dimension(MusicPlayerGUI.INITIAL_GUI_WIDTH, MusicPlayerGUI.INITIAL_GUI_HEIGHT));
+        this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         //set initial button states to false
