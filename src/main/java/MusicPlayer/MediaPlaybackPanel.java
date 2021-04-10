@@ -12,6 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.event.ChangeListener;
 
 /**
  *
@@ -22,11 +23,19 @@ public class MediaPlaybackPanel extends JPanel {
     final static Color DEFAULT_PANE_BG_COLOR = new Color(0,0,0);
     final static Color DEFAULT_COMPONENT_BG_COLOR = new Color(255,255,255);
     
+    final static int SEC_TO_MICROSEC = 1000000;
+    
     final static String DEFAULT_ART_IMAGE_RESOURCE = "images/default_art.jpg";
+    final static String DEFAULT_TIME_TEXT = "00:00";
     
-    public JLabel songArtLabel;
-    public JSlider timeSlider;
+    private JLabel songArtLabel;
     
+    private JPanel sliderPanel;
+    private JLabel timeIndicatorLabel;
+    private JLabel maxTimeLabel;
+    private JSlider timeSlider;
+    
+    private long previousTimePos = 0;
     
     MediaPlaybackPanel(){
         createGUIComponents(null);
@@ -41,8 +50,13 @@ public class MediaPlaybackPanel extends JPanel {
             public void run(){
                 JFrame frame = new JFrame();
                 frame.setSize(400, 400);
+                
                 MediaPlaybackPanel test = new MediaPlaybackPanel(); 
-                test.setTimeSliderBounds(5000000);
+                
+                test.setCurrentTimeLabel(3  * MediaPlaybackPanel.SEC_TO_MICROSEC);
+                test.setMaxPlayTimeLabel(5 * MediaPlaybackPanel.SEC_TO_MICROSEC);
+                test.setTimeSliderBounds(5 * MediaPlaybackPanel.SEC_TO_MICROSEC);
+                
                 frame.add(test);
                 frame.setVisible(true);
             }
@@ -59,13 +73,74 @@ public class MediaPlaybackPanel extends JPanel {
         this.songArtLabel = new JLabel();
         this.songArtLabel.setIcon(new ImageIcon(MediaDisplayPanel.DEFAULT_ART_IMAGE_RESOURCE));
         
+        this.sliderPanel = new JPanel();
+        this.timeIndicatorLabel = new JLabel(MediaPlaybackPanel.DEFAULT_TIME_TEXT);
+        this.maxTimeLabel = new JLabel(MediaPlaybackPanel.DEFAULT_TIME_TEXT);
+        
         this.timeSlider = new JSlider();
         this.setCurrentPostionOnTimeSlider(0);
         
+        this.sliderPanel.setLayout(new BorderLayout());
+        this.sliderPanel.add(this.timeIndicatorLabel,BorderLayout.WEST);
+        this.sliderPanel.add(this.timeSlider,BorderLayout.CENTER);
+        this.sliderPanel.add(this.maxTimeLabel,BorderLayout.EAST);
+        
+        this.setLayout(new BorderLayout() );
+        
         this.add(this.songArtLabel,BorderLayout.NORTH);
-        this.add(this.timeSlider,BorderLayout.SOUTH);
+        this.add(this.sliderPanel,BorderLayout.SOUTH);
         
     }
+    
+    
+    /**
+     * Add a change listener to the time slider
+     * @param listener Listener that specifies an action to perform when a change
+     * is detected with the internal JSlider component.
+     */
+    public void addSliderChangeListener(ChangeListener listener){
+        this.timeSlider.addChangeListener(listener);
+    }
+    
+    public long getPreviousTime(){
+        return this.previousTimePos;
+    }
+    
+    
+    /**
+     * Set slider position to timePos value
+     * @param timePos Position in microseconds
+     */
+    public void setCurrentPostionOnTimeSlider(int timePos){
+        this.previousTimePos = this.timeSlider.getValue();
+        this.timeSlider.setValue(timePos);
+    }
+    
+    /**
+     * Set the current time text label to currentTime in mm:ss format.
+     * @param currentTime Time in microseconds
+     */
+    public void setCurrentTimeLabel(int currentTime){
+        
+        int playTimeSeconds = (currentTime/ MediaPlaybackPanel.SEC_TO_MICROSEC) %60 ;
+        int playTimeMinutes = ((currentTime/ MediaPlaybackPanel.SEC_TO_MICROSEC) /60) % 60;
+        String playTimeStr = String.format("%02d:%02d",playTimeMinutes,playTimeSeconds);
+        
+        this.timeIndicatorLabel.setText(playTimeStr);
+    }
+    
+    /**
+     * Sets the text for the max play time label to maxPlayTime.
+     * @param maxPlayTime 
+     */
+    public void setMaxPlayTimeLabel(int maxPlayTime){
+        int playTimeSeconds = (maxPlayTime/ MediaPlaybackPanel.SEC_TO_MICROSEC) %60 ;
+        int playTimeMinutes = ((maxPlayTime/ MediaPlaybackPanel.SEC_TO_MICROSEC) /60) % 60;
+        String playTimeStr = String.format("%02d:%02d",playTimeMinutes,playTimeSeconds);
+        
+        this.maxTimeLabel.setText(playTimeStr);
+    }
+    
     
     /**
      * Sets the playback slider bounds from 0 to the maxPlayTime
@@ -79,12 +154,5 @@ public class MediaPlaybackPanel extends JPanel {
         
     }
     
-    /**
-     * Set slider position to timePos value
-     * @param timePos Position in microseconds
-     */
-    public void setCurrentPostionOnTimeSlider(int timePos){
-        this.timeSlider.setValue(0);
-    }
     
 }

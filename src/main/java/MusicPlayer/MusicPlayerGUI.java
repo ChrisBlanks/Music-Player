@@ -134,8 +134,6 @@ public class MusicPlayerGUI extends JFrame {
     
     private void setComponentListeners(){
         
-        //To-Do: Add action listener for remove file menu option
-        
         //set actionlistener callbacks
         this.openFileMenuItem.addActionListener( new ActionListener(){
         
@@ -176,6 +174,8 @@ public class MusicPlayerGUI extends JFrame {
         
             @Override
             public void actionPerformed(ActionEvent e){
+                mpc.setPausedState(false);
+                
                 mpc.playAudio();
                 
                 playButton.setEnabled(false);
@@ -198,6 +198,7 @@ public class MusicPlayerGUI extends JFrame {
                     mpc.resumeAudio();
                     playState = true;
                 }
+                mpc.setPausedState(!playState);
             }
         
         };
@@ -209,6 +210,7 @@ public class MusicPlayerGUI extends JFrame {
             public void actionPerformed(ActionEvent e){
 
                 mpc.stopAudio();
+                mpc.setPausedState(false);
                 
                 playButton.setEnabled(true);
                 pauseButton.setEnabled(false);
@@ -237,16 +239,32 @@ public class MusicPlayerGUI extends JFrame {
                 if(songName != null){
                     //stop audio if playing
                     mpc.stopAudio();
+                    mpc.setPausedState(false);
                     
                     //setup new selected song
-                    mdp.displaySongDetails(songName);
+                    mdp.displaySongDetails(mpc.buildAudioDetailsMessage());
                     mpc.selectedSongKey = mdp.getSongFilePath(songName);
                     
-                    mpp.setTimeSliderBounds((int)mpc.getAudioPlayTime());
+                    int audioPlayTime = (int)mpc.getAudioPlayTime();
+                    mpp.setTimeSliderBounds(audioPlayTime);
+                    mpp.setMaxPlayTimeLabel(audioPlayTime);
                 }
             }
         };
         this.mdp.addListSelectionListenerToList(listListener);
+        
+        ChangeListener listener = new ChangeListener(){
+            
+            @Override
+            public void stateChanged(ChangeEvent ce) {
+                JSlider temp = ((JSlider) ce.getSource());
+                
+                int timePos = temp.getValue();
+                mpc.updateTimeSlider((long)timePos);
+            }
+        
+        };
+        this.mpp.addSliderChangeListener(listener);
     }
     
     private void configureInitialGUIState(){

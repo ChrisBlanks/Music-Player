@@ -116,8 +116,18 @@ public class WavAudioResource extends AudioResource {
         System.out.println(mediaInfo);
     }
     
+    @Override
     public MediaDetails getMediaDetails(){
         return new MediaDetails.MediaDetailsBuilder(this.audioResourceFilePath,this.fileName,this.fileTypeExtension).build();
+    }
+    
+    @Override
+    public long getMicrosecondPosition(){
+        if(this.isIniatialized() == false){
+            throw new IllegalStateException("Object is not initialized.");
+        } 
+        
+        return this.clip.getMicrosecondPosition();
     }
     
     

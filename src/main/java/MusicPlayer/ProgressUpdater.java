@@ -7,7 +7,6 @@ package MusicPlayer;
 
 import java.util.TimerTask;
 import javax.sound.sampled.Clip;
-import javax.swing.JSlider;
 
 /**
  *
@@ -15,20 +14,24 @@ import javax.swing.JSlider;
  */
 class ProgressUpdater extends TimerTask{
     
-    private JSlider slider;
-    private Clip clip;
+    private final MediaPlaybackPanel mpp;
+    private final MusicPlayerController mpc;
     
-    ProgressUpdater(Clip clip,JSlider slider){
-        this.slider = slider;
-        this.clip = clip;
+    ProgressUpdater(MusicPlayerController mpc,MediaPlaybackPanel mpp){
+        this.mpp = mpp;
+        this.mpc = mpc;
     }
     
     @Override
     public void run(){
         
-        if(this.clip.isRunning()){
-            long newPos = this.clip.getMicrosecondPosition();
-            this.slider.setValue((int)newPos);
+        if(this.mpc.getPlayingState() == true){
+            long newPos = this.mpc.getAudioMicrosecondPosition();
+            
+            this.mpp.setCurrentPostionOnTimeSlider((int)newPos);
+            this.mpp.setCurrentTimeLabel((int)newPos);
+        } else if(this.mpc.getPausedState() == false) {
+            this.mpc.stopAudio();
         }
         
     }

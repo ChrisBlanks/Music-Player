@@ -5,7 +5,6 @@
  */
 package MusicPlayer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -20,13 +19,18 @@ import javax.sound.sampled.LineListener;
  */
 public class MusicPlayerController {
     private static final String NO_SONG_SELECTION = "";
+    public static int SLIDER_UPDATE_INTERVAL_MILLISECONDS = 50;
+    public static int MILLISECOND_TO_MICROSECOND = 1000;
+    public static int TIME_SLIDER_THRESHOLD = 150;
     
-    private Map<String,AudioResource> audioResourceMap;
+    private final Map<String,AudioResource> audioResourceMap;
     private MusicPlayerGUI mpgObj;
+    
+    private Timer timer;
     
     public String selectedSongKey = MusicPlayerController.NO_SONG_SELECTION;
     
-    int currentResourceIndex = -1;
+    private boolean isPaused = false;
     
     MusicPlayerController(){
         this.audioResourceMap = new HashMap<>();
@@ -50,6 +54,12 @@ public class MusicPlayerController {
         }
     }
     
+    public void cancelTimerThread(){
+        if(this.timer != null){
+            this.timer.cancel();
+        }
+    }
+    
     public void closeAudio(){
 
         if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
@@ -66,6 +76,26 @@ public class MusicPlayerController {
             return 0;
         }
     }
+    
+    
+    public String buildAudioDetailsMessage(){
+
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null &&  this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
+            String message;
+            MediaDetails details = this.audioResourceMap.get(this.selectedSongKey).getMediaDetails();
+            message = String.format("<html>Song: %s<br/>Artist: %s<br/>Album: %s</html>",
+                                    details.getFileName().replace(details.getFileTypeExtension(),""),
+                                    details.getAuthor(),
+                                    details.getAlbum()
+            );
+            
+            return message;
+        } else{
+            return null;
+        }
+
+    }
+    
     
     public String getAudioFileName(){
         if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null &&  this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
@@ -84,6 +114,30 @@ public class MusicPlayerController {
         }
     }
     
+    public long getAudioMicrosecondPosition(){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
+            return this.audioResourceMap.get(this.selectedSongKey).getMicrosecondPosition();
+        } else{
+            return 0;
+        }   
+    }
+    
+    public boolean getPausedState(){
+       return this.isPaused;
+    }
+    
+    public void setPausedState(boolean state){
+        this.isPaused = state;
+    }
+    
+    public boolean getPlayingState(){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
+            return this.audioResourceMap.get(this.selectedSongKey).isPlaying();
+        } else{
+            return false;
+        }  
+    }
+    
     public boolean loadAudio(String audioFilePath){
         boolean isSuccessful = false;
         
@@ -96,6 +150,8 @@ public class MusicPlayerController {
             this.selectedSongKey = audioFilePath;
             this.mpgObj.mdp.addSongNameToList(audioFilePath, newResource.fileName);
             
+            int playTime = (int)getAudioPlayTime();
+            this.mpgObj.mpp.setMaxPlayTimeLabel(playTime);
             
             isSuccessful = true;
         } else{
@@ -126,9 +182,11 @@ public class MusicPlayerController {
                             mpgObj.playButton.setEnabled(true);
                             mpgObj.pauseButton.setEnabled(false);
                             mpgObj.stopButton.setEnabled(false);
-
-                            clip.setMicrosecondPosition(0); //set to beginning of audio data
+                            
+                            setAudioMicrosecondPosition(0);
                             mpgObj.mpp.setTimeSliderBounds((int)getAudioPlayTime());
+                            mpgObj.mpp.setCurrentTimeLabel(0);
+                            
                             System.out.println("Audio finished playing.");
                         }
 
@@ -136,11 +194,10 @@ public class MusicPlayerController {
                     }
                 };
                 this.attachLineListener(listener);
-
-                TimerTask intervalTask = new ProgressUpdater(clip,mpgObj.mpp.timeSlider);
-                Timer timer = new Timer();
-                timer.schedule(intervalTask, 0, 250); 
                 
+                this.timer = new Timer();
+                TimerTask intervalTask = new ProgressUpdater(this,mpgObj.mpp);
+                timer.schedule(intervalTask, 0, MusicPlayerController.SLIDER_UPDATE_INTERVAL_MILLISECONDS); 
                 wavTemp.playAudio();
             }
         }
@@ -172,6 +229,10 @@ public class MusicPlayerController {
         
     }
     
+    /**
+     * Set time position in audio playback.
+     * @param timePos Time position in microseconds.
+     */
     public void setAudioMicrosecondPosition(long timePos){
         if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null && this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
             this.audioResourceMap.get(this.selectedSongKey).setMicrosecondPosition(timePos);
@@ -193,11 +254,32 @@ public class MusicPlayerController {
             AudioResource currentResource = this.audioResourceMap.get(this.selectedSongKey);
             if( currentResource != null && currentResource.isPlaying()){
                 this.audioResourceMap.get(this.selectedSongKey).stopAudio();
-                setAudioMicrosecondPosition(0);
+                
+                this.setAudioMicrosecondPosition(0);
                 mpgObj.mpp.setCurrentPostionOnTimeSlider(0);
+                mpgObj.mpp.setCurrentTimeLabel(0);
+                
+                this.cancelTimerThread();
             }
         }
 
+    }
+    
+    public void updateTimeSlider(long timePos){
+        long previousTime = this.mpgObj.mpp.getPreviousTime();
+        String logMsg = String.format("Old time: %d New time: %d\nDelta: %d"
+                                    ,previousTime
+                                    ,timePos 
+                                    ,timePos - previousTime
+        );
+        System.out.println(logMsg);
+        
+        if(Math.abs((timePos - previousTime)/ MusicPlayerController.MILLISECOND_TO_MICROSECOND) > MusicPlayerController.TIME_SLIDER_THRESHOLD){
+            this.setAudioMicrosecondPosition(timePos);
+            this.mpgObj.mpp.setCurrentPostionOnTimeSlider((int)timePos);
+            this.mpgObj.mpp.setCurrentTimeLabel((int)timePos);
+            System.out.println("Updated time slider");
+        }
     }
     
 }
