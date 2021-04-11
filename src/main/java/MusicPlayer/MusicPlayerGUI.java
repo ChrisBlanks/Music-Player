@@ -217,6 +217,26 @@ public class MusicPlayerGUI extends JFrame {
         };
         this.mcp.setStopAction(stopMedia);
         
+        ActionListener skipBackward =  new ActionListener(){
+        
+            @Override
+            public void actionPerformed(ActionEvent e){
+                mpc.rewindAduio();
+            }
+        };
+        
+        this.mcp.setBackwardAction(skipBackward);
+        
+        ActionListener skipForward =  new ActionListener(){
+        
+            @Override
+            public void actionPerformed(ActionEvent e){
+                mpc.fastForwardAudio();
+            }
+        };
+        
+        this.mcp.setForwardAction(skipForward);
+        
         ChangeListener volumeListener = new ChangeListener(){
             @Override
             public void stateChanged(ChangeEvent ce) {

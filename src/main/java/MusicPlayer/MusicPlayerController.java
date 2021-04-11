@@ -6,6 +6,7 @@
 package MusicPlayer;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,9 +20,11 @@ import javax.sound.sampled.LineListener;
  */
 public class MusicPlayerController {
     private static final String NO_SONG_SELECTION = "";
+    
     public static int SLIDER_UPDATE_INTERVAL_MILLISECONDS = 50;
     public static int MILLISECOND_TO_MICROSECOND = 1000;
     public static int TIME_SLIDER_THRESHOLD_MILLISECOND = 1050; //Note: Seems to be a 1 second delay to start clip
+    public static double AUDIO_SKIP_PERCENTAGE = 0.10;
     
     private final Map<String,AudioResource> audioResourceMap;
     private MusicPlayerGUI mpgObj;
@@ -92,6 +95,22 @@ public class MusicPlayerController {
             return null;
         }
 
+    }
+    
+    
+    public void fastForwardAudio(){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null &&  this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
+            AudioResource audio = this.audioResourceMap.get(this.selectedSongKey);
+            long currentPos = audio.getMicrosecondPosition();
+            long maxPos = audio.playTime;
+            long newPos = (long)((double)maxPos * MusicPlayerController.AUDIO_SKIP_PERCENTAGE) + currentPos;
+            long selection = (newPos >= maxPos) ? maxPos :newPos;
+            
+            this.setAudioMicrosecondPosition(selection);
+            this.mpgObj.mpp.setCurrentPostionOnTimeSlider((int)selection);
+            this.mpgObj.mpp.setCurrentTimeLabel((int)selection);
+            System.out.println("User skipped ahead");
+        } 
     }
     
     
@@ -219,6 +238,22 @@ public class MusicPlayerController {
             this.audioResourceMap.get(this.selectedSongKey).resumeAudio();
         }
         
+    }
+    
+    public void rewindAduio(){
+        if(this.audioResourceMap.isEmpty() == false && this.selectedSongKey != null &&  this.selectedSongKey.equals(MusicPlayerController.NO_SONG_SELECTION) == false){
+            AudioResource audio = this.audioResourceMap.get(this.selectedSongKey);
+            long currentPos = audio.getMicrosecondPosition();
+            long maxPos = audio.playTime;
+            long skipAmount = (long)((double)maxPos *  MusicPlayerController.AUDIO_SKIP_PERCENTAGE);
+            long newPos = currentPos - skipAmount;
+            long selection = (newPos >= 0) ? newPos : 0;
+            
+            this.setAudioMicrosecondPosition(selection);
+            this.mpgObj.mpp.setCurrentPostionOnTimeSlider((int)selection);
+            this.mpgObj.mpp.setCurrentTimeLabel((int)selection);
+            System.out.println("User rewinded");
+        } 
     }
     
     /**
