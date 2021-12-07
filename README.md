@@ -17,6 +17,14 @@ A simple Java desktop app for playing **Wav** audio files.
 **Note**: The project will most likely build in different environments if Java version >=11 & maven version >=3.6.3 are used.
 
 ---
+**Build Environment** 
+prerequisites:
+- maven build tool 
+
+**Build Command**
+`mvn clean package exec`
+
+---
 ## Current UI/UX
 
 Example view:
